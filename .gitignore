@@ -1,0 +1,7 @@
+# Files and directories to ignore
+data/
+eg/
+net_state/
+.ipynb_checkpoints/
+
+*.ipynb
