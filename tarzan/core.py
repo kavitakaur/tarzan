@@ -135,14 +135,13 @@ class MLP(nn.Module):
 class Classifier:
     ERR_MSG = "Values not found within available options: "
     
-    def __init__(self, net):
-        self.net = net
-#         if net == "MLP":
-#             self.net = MLP()
-#         elif net == "CNN":
-#             self.net = CNN()
-#         else:
-#             raise ValueError("Values not found within available options: 'MLP', 'CNN'")
+    def __init__(self, model: str):
+        if net == "mlp":
+            self.net = MLP()
+        elif net == "cnn":
+            self.net = CNN()
+        else:
+            raise ValueError("Values not found within available options: 'mlp', 'cnn'")
 
     def training_step(self, batch):
         x, y = batch

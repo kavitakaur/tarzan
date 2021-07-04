@@ -1,5 +1,5 @@
 # Files and directories to ignore
-data/
+data/misc/
 eg/
 net_state/
 .ipynb_checkpoints/

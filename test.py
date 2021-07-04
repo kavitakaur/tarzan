@@ -1,7 +1,6 @@
 import tarzan.core as tz
 import torch
-from torchvision import transforms, datasets
-
+from torchvision import transforms
 
 
 # User provides annotation file in .csv format (with header)
@@ -22,7 +21,6 @@ dataset.load_image(
     mnist_path,
     transformations
 )
-#DatasetFromImage.transform
 dataset.split()
 # dataset.save(save_path)
 # dataset.load(save_path)
@@ -31,10 +29,8 @@ train_dataloader = dataset.train_dataloader()
 test_dataloader = dataset.test_dataloader()
 
 
-
-# instantiate the neural network and 
-mlp = tz.MLP()
-clf = tz.Classifier(mlp)
+# instantiate the neural network
+clf = tz.Classifier("mlp")
 clf.set_optimiser("adam")
 clf.set_scheduler("exponential")
 
@@ -58,6 +54,6 @@ trainer.fit(clf, train_dataloader, epochs=1)
 # trainer.load_net(clf, PATH)
 
 
-
 predictions = trainer.predict(test_dataloader)
 trainer.count_classes(test_dataloader)
+
