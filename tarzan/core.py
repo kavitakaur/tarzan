@@ -7,6 +7,10 @@ from PIL import Image
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision import transforms
+
+
+ERR_MSG = "Values not found within available options: "
 
 
 class DatasetFromImage(torch.utils.data.Dataset):
@@ -39,15 +43,22 @@ class DatasetFromImage(torch.utils.data.Dataset):
             
         if self.target_transform:
             label = self.target_transform(label)
-            
+
         return image, label
 
 
 class Data:  
     def __init__(self, batch_size=32):
         self.batch_size = batch_size
+        self.transformations =  transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+        ])
         
     def load_image(self, annot_file, img_dir, transform=None, target_transform=None):
+        if transform is None:
+            transform = self.transformations
+
         # Instantiates DataSet object
         self.data = DatasetFromImage(annot_file, img_dir, transform, target_transform)
     
@@ -78,14 +89,30 @@ class Data:
             print(f'Directory created: {dir_path}')
             torch.save(self.train, train_path)
             torch.save(self.test, test_path)
-        
-#     def anonymise(self):
-    
-    def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train, batch_size=self.batch_size)
+       
 
-    def test_dataloader(self):
-        return torch.utils.data.DataLoader(self.test, batch_size=self.batch_size)
+    def anonymise(self, option="1"):
+        if option == "1":
+            # TODO
+            pass
+        elif option == "2":
+            # TODO
+            pass
+        else:
+            raise ValueError(ERR_MSG + "'1', '2'")
+
+ 
+    def train_dataloader(self, batch_size=None):
+        if batch_size is None:
+            batch_size = self.batch_size
+
+        return torch.utils.data.DataLoader(self.train, batch_size=batch_size)
+
+    def test_dataloader(self, batch_size=None):
+        if batch_size is None:
+            batch_size = self.batch_size
+
+        return torch.utils.data.DataLoader(self.test, batch_size=batch_size)
     
 
 # convolutional neural network
@@ -131,17 +158,65 @@ class MLP(nn.Module):
         x = self.fc4(x)
         return F.log_softmax(x, dim=1)
 
+# feedforward neural network
+class FNN(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(FNN, self).__init__()
+        # Linear function
+        self.fc1 = nn.Linear(input_dim, hidden_dim) 
+        # Non-linearity
+        self.tanh = nn.Tanh()
+        # Linear function (readout)
+        self.fc2 = nn.Linear(hidden_dim, output_dim)  
+
+    def forward(self, x):
+        # Linear function
+        out = self.fc1(x)
+        # Non-linearity
+        out = self.tanh(out)
+        # Linear function (readout)
+        out = self.fc2(out)
+        return out
+
+# UNet
+class UNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # UNet layers
+        
+    def forward(self, x):
+        # UNet architecture
+        return x
+
+# vggnet
+class VGGNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # vggnet layers
+        
+    def forward(self, x):
+        # vggnet architecture
+        return x
+"""
+"vggnet"
+"alexnet"
+"resnet"
+"""
 
 class Classifier:
-    ERR_MSG = "Values not found within available options: "
-    
     def __init__(self, model: str):
-        if net == "mlp":
+        if model == "mlp":
             self.net = MLP()
-        elif net == "cnn":
+        elif model == "cnn":
             self.net = CNN()
+        elif model == "fnn":
+            self.net = FNN()
+        elif model == "unet":
+            self.net = UNet()
+        elif model == "vggnet":
+            self.net = VGGNet()
         else:
-            raise ValueError("Values not found within available options: 'mlp', 'cnn'")
+            raise ValueError(ERR_MSG + "'mlp', 'cnn', 'fnn', 'unet', 'vggnet'")
 
     def training_step(self, batch):
         x, y = batch
@@ -169,7 +244,7 @@ class Classifier:
 #         return loss, acc
 
     def predict_proba_step(self, batch):
-        x, y = batch
+        x, _ = batch
         y_hat = self.net(x)
         return y_hat
     
@@ -191,10 +266,12 @@ class Classifier:
     def set_scheduler(self, scheduler="exponential", milestones=[3,8]):
         if scheduler == "exponential":
             self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimiser, gamma=0.9)
-        elif optimiser == "multistep":
+        elif scheduler == "multistep":
             self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=milestones, gamma=0.1)
+        elif scheduler == "step":
+            self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimiser, step_size=2, gamma=0.1)
         else:
-            raise ValueError(ERR_MSG + "'exponential', 'multistep'")
+            raise ValueError(ERR_MSG + "'exponential', 'multistep', 'step'")
 
 
             #torch.optim.lr_scheduler.MultiStepLR
@@ -228,7 +305,20 @@ class Trainer:
                 self.model.scheduler.step() #lr changes every epoch
                 lr = self.model.scheduler.get_last_lr()[0]
                 print(f"Learning rate = {lr:.5f}")
-            
+
+
+    def threshold(self, dataloader):
+        #TODO
+        
+        return 0
+ 
+
+    def segment(self, dataloader):
+        #TODO
+        
+        return 1
+
+
     def predict(self, dataloader) -> List[torch.Tensor]:
         # since we're not training, we don't need to calculate the gradients for our outputs
         self.model.net.train(False) # TODO: Check self.model.eval()
