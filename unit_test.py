@@ -66,7 +66,7 @@ class TestClassifier(unittest.TestCase):
         train_dataloader = self.dataset.train_dataloader()
         # Test neural network architecture / model 
         for batch in train_dataloader:
-            # Catch error if input does not match archictecture of model
+            # Catch error if input does not match architecture of model
             loss = self.clf.training_step(batch)
             self.assertEqual(torch.Size([]), loss.shape)
             break
@@ -75,7 +75,7 @@ class TestClassifier(unittest.TestCase):
         test_dataloader = self.dataset.test_dataloader()
         # Test neural network architecture / model 
         for batch in test_dataloader:
-            # Catch error if input does not match archictecture of model
+            # Catch error if input does not match architecture of model
             y_hat = self.clf.predict_proba_step(batch)
 
             self.assertEqual(torch.Size([BATCH_SIZE, N_CLASSES]), y_hat.shape)
@@ -85,7 +85,7 @@ class TestClassifier(unittest.TestCase):
         test_dataloader = self.dataset.test_dataloader()
         # Test neural network architecture / model 
         for batch in test_dataloader:
-            # Catch error if input does not match archictecture of model
+            # Catch error if input does not match architecture of model
             predicted_labels = self.clf.predict_step(batch)
             self.assertEqual(torch.Size([BATCH_SIZE]), predicted_labels.shape)
             break
